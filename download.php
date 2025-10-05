@@ -140,21 +140,3 @@ document.getElementById('seeMore').addEventListener('click', function(){
 });
 </script>
 
-
-<script>
-document.getElementById('selectAll').addEventListener('change', function(){
-    let checkboxes = document.querySelectorAll('input[name="files[]"]');
-    checkboxes.forEach(cb => cb.checked = this.checked);
-});
-
-let shownRows = 5;
-document.getElementById('seeMore').addEventListener('click', function(){
-    let rows = document.querySelectorAll('.fileRow');
-    let count = 0;
-    for(let i=shownRows; i<rows.length && count<5; i++, count++){
-        rows[i].style.display = '';
-    }
-    shownRows += count;
-    if(shownRows >= rows.length) this.style.display = 'none';
-});
-</script>
