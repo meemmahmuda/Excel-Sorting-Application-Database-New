@@ -2,7 +2,7 @@
 require 'vendor/autoload.php';
 include 'db.php';
 include 'session.php'; 
-include 'header.php';
+
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -30,6 +30,8 @@ if (isset($_GET['result'])) {
         $color = '#28a745'; 
     }
 
+    include 'header.php';
+    
     echo '
     <div style="width:450px; margin:50px auto; padding:25px; border:1px solid #ccc; border-radius:8px; background:#f9f9f9; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-family:Arial, sans-serif; text-align:center;">
         <h2 style="color:#333; margin-bottom:20px;">Compare Result</h2>

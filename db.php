@@ -50,3 +50,25 @@ CREATE TABLE files (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ); -->
+
+
+
+<!-- -- Users table (unchanged)
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Files table (with relation to users + bank_name added)
+CREATE TABLE files (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    filename VARCHAR(255) NOT NULL,
+    file_data LONGBLOB NOT NULL,
+    type ENUM('uploaded','unmatched') DEFAULT 'uploaded',
+    bank_name VARCHAR(100) NOT NULL, -- new column for bank
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+); -->
