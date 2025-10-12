@@ -50,6 +50,8 @@ include 'header.php';
             <option value="Sonali Bank">Sonali Bank</option>
             <option value="Standard Bank">Standard Bank</option>
             <option value="Modhumoti Bank">Modhumoti Bank</option>
+            <option value="Trust TAP Holding">Trust TAP Holding</option>
+            <option value="Trust TAP TL">Trust TAP TL</option>
             <option value="Upay">Upay</option>
             <option value="OK Wallet">OK Wallet</option>
             <option value="DBBL TL Collection">DBBL TL Collection</option>
@@ -72,6 +74,8 @@ include 'header.php';
             <option value="Sonali Bank">Sonali Bank</option>
             <option value="Standard Bank">Standard Bank</option>
             <option value="Modhumoti Bank">Modhumoti Bank</option>
+            <option value="Trust TAP Holding">Trust TAP Holding</option>
+            <option value="Trust TAP TL">Trust TAP TL</option>
             <option value="Upay">Upay</option>
             <option value="OK Wallet">OK Wallet</option>
             <option value="DBBL TL Collection">DBBL TL Collection</option>
