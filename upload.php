@@ -52,7 +52,7 @@ include 'header.php';
             <option value="Modhumoti Bank">Modhumoti Bank</option>
             <option value="Trust TAP Holding">Trust TAP Holding</option>
             <option value="Trust TAP TL">Trust TAP TL</option>
-            <option value="Upay">Upay</option>
+            <option value="Upay MFS">Upay MFS</option>
             <option value="OK Wallet">OK Wallet</option>
             <option value="DBBL TL Collection">DBBL TL Collection</option>
             <option value="DBBL TL Correction">DBBL TL Correction</option>
@@ -76,7 +76,7 @@ include 'header.php';
             <option value="Modhumoti Bank">Modhumoti Bank</option>
             <option value="Trust TAP Holding">Trust TAP Holding</option>
             <option value="Trust TAP TL">Trust TAP TL</option>
-            <option value="Upay">Upay</option>
+            <option value="Upay MFS">Upay MFS</option>
             <option value="OK Wallet">OK Wallet</option>
             <option value="DBBL TL Collection">DBBL TL Collection</option>
             <option value="DBBL TL Correction">DBBL TL Correction</option>
