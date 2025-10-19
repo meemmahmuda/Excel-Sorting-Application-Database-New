@@ -1,4 +1,5 @@
 <?php
+/*
 session_start();
 require 'db.php';
 
@@ -24,8 +25,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         $error = "All fields are required.";
     }
 }
+*/
 ?>
 
+<?php
+/*
 <div style="width:300px; margin:50px auto; padding:20px; border:1px solid #ccc; border-radius:8px; background:#f9f9f9; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-family:Arial, sans-serif;">
     <h2 style="text-align:center; color:#333;">Register</h2>
 
@@ -45,4 +49,5 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         <a href="login.php" style="color:#007BFF; text-decoration:none;">Login</a>
     </p>
 </div>
-
+*/
+?>

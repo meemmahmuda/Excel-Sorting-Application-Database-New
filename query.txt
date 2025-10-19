@@ -37,26 +37,28 @@ CREATE TABLE files (
 
 
 
-<!-- -- Users table (unchanged)
+
+-- Users table with role added
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+    is_approved TINYINT(1) NOT NULL DEFAULT 0,      -- 0 = Not approved, 1 = Approved
+    role ENUM('user','admin') NOT NULL DEFAULT 'user', -- role of the user
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Files table (with relation to users + bank_name added)
+-- Files table (unchanged)
 CREATE TABLE files (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     filename VARCHAR(255) NOT NULL,
     file_data LONGBLOB NOT NULL,
     type ENUM('uploaded','unmatched') DEFAULT 'uploaded',
-    bank_name VARCHAR(100) NOT NULL, -- new column for bank
+    bank_name VARCHAR(100) NOT NULL,       -- bank or portal name
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-); -->
+);
 
 
 
