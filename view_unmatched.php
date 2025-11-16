@@ -90,7 +90,7 @@ foreach ($fileRecords as $file) {
 
 if ($bankFilter || $userFilter || ($startDate && $endDate)) {
     echo '<h3 style="color:#007bff; text-align:center; margin-bottom:20px;">
-            Total Unmatched Data Rows (All Files): <b>' . number_format($totalRows) . '</b>
+            Total Unmatched Data (All Files): <b>' . number_format($totalRows) . '</b>
           </h3>';
 }
 
