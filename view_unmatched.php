@@ -6,7 +6,7 @@ include 'header.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-// Only admin access
+
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     echo '<div style="text-align:center; margin-top:50px; font-family:Arial,sans-serif;">
             <h2 style="color:#d9534f;">Access Denied</h2>
@@ -15,7 +15,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-// Fetch bank and user filters
+
 $bankList = $pdo->query("SELECT DISTINCT bank_name FROM files WHERE type='unmatched'")->fetchAll(PDO::FETCH_COLUMN);
 $userList = $pdo->query("SELECT id, username FROM users WHERE is_approved = 1 AND role != 'admin'")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -28,7 +28,7 @@ $endDate = $_POST['end_date'] ?? '';
 <div style="width:90%; max-width:1200px; margin:30px auto; font-family:Arial,sans-serif;">
     <h2 style="text-align:center; color:#333; margin-bottom:20px;">Unmatched Files Overview</h2>
 
-    <!-- Filter Form -->
+ 
     <form method="post" style="text-align:center; margin-bottom:25px;">
         <label><b>Bank:</b></label>
         <select name="bank_name" style="padding:8px; border-radius:4px; border:1px solid #ccc;">
@@ -60,7 +60,7 @@ $endDate = $_POST['end_date'] ?? '';
     </form>
 
 <?php
-// Prepare query
+
 $sql = "SELECT f.*, u.username
         FROM files f
         JOIN users u ON f.user_id = u.id
@@ -81,7 +81,7 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $fileRecords = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Total rows counter
+
 $totalRows = 0;
 foreach ($fileRecords as $file) {
     $tmpFile = tempnam(sys_get_temp_dir(), 'xls_');
@@ -103,7 +103,7 @@ if (empty($fileRecords)) {
     echo "<p style='text-align:center; color:#d9534f;'>No unmatched files found.</p>";
 } else {
 
-    // Column mappings
+ 
     $columnsToUse = [
         [
             'docnumber' => 'TL No',
@@ -200,7 +200,7 @@ if (empty($fileRecords)) {
             'Amount' => 'Amount',
             'status' => 'Status'
         ]
-        // Add other mappings here
+        
     ];
 
     foreach ($fileRecords as $file):
@@ -217,11 +217,11 @@ if (empty($fileRecords)) {
         $selectedColumns = [];
 
 
-        // Find matching column set
+        
         foreach ($columnsToUse as $colSet) {
             $allFound = true;
             foreach ($colSet as $key => $label) {
-                if (strtolower($key) === 'status') continue; // optional
+                if (strtolower($key) === 'status') continue; 
                 if (array_search(strtolower($key), $headers) === false) {
                     $allFound = false;
                     break;
@@ -233,7 +233,7 @@ if (empty($fileRecords)) {
             }
         }
 
-        // Build display headers & indexes
+       
         $displayHeaders = [];
         $displayIndexes = [];
         foreach ($selectedColumns as $key => $label) {
@@ -249,7 +249,7 @@ if (empty($fileRecords)) {
             }
         }
 
-        // Calculate total amount
+      
         $amountCol = null;
         foreach ($displayIndexes as $idx) {
             if ($idx !== null && in_array($headers[$idx], ['totalamt','paid amount','amount','txn_amt','total amount','reqamount','amount bdt'])) {

@@ -9,7 +9,7 @@ if(!isset($_GET['id'])) die("Invalid request.");
 
 $id = (int)$_GET['id'];
 
-// Fetch file
+
 $stmt = $pdo->prepare("SELECT * FROM files WHERE id=? AND user_id=?");
 $stmt->execute([$id, $userId]);
 $file = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -17,7 +17,7 @@ $file = $stmt->fetch(PDO::FETCH_ASSOC);
 if(!$file) die("File not found.");
 
 
-// Handle updated Excel upload
+
 if($_SERVER['REQUEST_METHOD'] === 'POST'){
 
     if(!isset($_FILES['excel']) || $_FILES['excel']['error'] != 0){
@@ -27,7 +27,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
     $newFileData  = file_get_contents($_FILES['excel']['tmp_name']);
     $newFileName  = $_FILES['excel']['name'];
 
-    // UPDATE the same record
+  
     $stmt = $pdo->prepare("
         UPDATE files 
         SET filename=?, file_data=?, created_at=NOW()
