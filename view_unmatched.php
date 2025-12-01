@@ -6,7 +6,7 @@ include 'header.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-// Only allow admin
+// Only admin access
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     echo '<div style="text-align:center; margin-top:50px; font-family:Arial,sans-serif;">
             <h2 style="color:#d9534f;">Access Denied</h2>
@@ -15,11 +15,10 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-// Fetch bank list and user list
+// Fetch bank and user filters
 $bankList = $pdo->query("SELECT DISTINCT bank_name FROM files WHERE type='unmatched'")->fetchAll(PDO::FETCH_COLUMN);
 $userList = $pdo->query("SELECT id, username FROM users WHERE is_approved = 1 AND role != 'admin'")->fetchAll(PDO::FETCH_ASSOC);
 
-// Get filters
 $bankFilter = $_POST['bank_name'] ?? '';
 $userFilter = $_POST['user_id'] ?? '';
 $startDate = $_POST['start_date'] ?? '';
@@ -29,6 +28,7 @@ $endDate = $_POST['end_date'] ?? '';
 <div style="width:90%; max-width:1200px; margin:30px auto; font-family:Arial,sans-serif;">
     <h2 style="text-align:center; color:#333; margin-bottom:20px;">Unmatched Files Overview</h2>
 
+    <!-- Filter Form -->
     <form method="post" style="text-align:center; margin-bottom:25px;">
         <label><b>Bank:</b></label>
         <select name="bank_name" style="padding:8px; border-radius:4px; border:1px solid #ccc;">
@@ -54,11 +54,13 @@ $endDate = $_POST['end_date'] ?? '';
         <input type="date" name="start_date" value="<?= htmlspecialchars($startDate) ?>" style="padding:8px;">
         <input type="date" name="end_date" value="<?= htmlspecialchars($endDate) ?>" style="padding:8px;">
 
-        <button type="submit" style="padding:8px 15px; margin-left:10px; background:#28a745; color:white; border:none; border-radius:4px;">Show</button>
+        <button type="submit" style="padding:8px 15px; margin-left:10px; background:#28a745; color:white; border:none; border-radius:4px;">
+            Show
+        </button>
     </form>
 
 <?php
-// Prepare SQL with filters
+// Prepare query
 $sql = "SELECT f.*, u.username
         FROM files f
         JOIN users u ON f.user_id = u.id
@@ -79,7 +81,7 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $fileRecords = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Calculate total unmatched rows across all files
+// Total rows counter
 $totalRows = 0;
 foreach ($fileRecords as $file) {
     $tmpFile = tempnam(sys_get_temp_dir(), 'xls_');
@@ -100,6 +102,107 @@ if ($bankFilter || $userFilter || ($startDate && $endDate)) {
 if (empty($fileRecords)) {
     echo "<p style='text-align:center; color:#d9534f;'>No unmatched files found.</p>";
 } else {
+
+    // Column mappings
+    $columnsToUse = [
+        [
+            'docnumber' => 'TL No',
+            'tranno' => 'Txn ID',
+            'cdate' => 'Date',
+            'totalamt' => 'Amount',
+            'gateway' => 'Gateway',
+            'PaymentType' => 'Payment Type',
+            'status' => 'Status'
+
+        ],
+        [
+            'e-holding' => 'E-Holding',
+            'transactio id' => 'Txn ID',
+            'date' => 'Date',
+            'paid amount' => 'Amount',
+            'gateway' => 'Gateway',
+            'status' => 'Status'
+        ],
+        [
+            'bill no' => 'Holding No / TL No',
+            'txn id' => 'Txn ID',
+            'territory code' => 'Date',
+            'amount' => 'Amount',
+            'status' => 'Status'
+        ],
+        [
+            'bill no' => 'Holding No / TL No',
+            'txn id' => 'Txn ID',
+            'territory code' => 'Date',
+            'amount' => 'Amount',
+            'status' => 'Status'
+        ],
+        [
+            'BILLER_REF_NO' => 'Holding No',
+            'TRANSACTION_ID' => 'Txn ID',
+            'TXN_DATE' => 'Date',
+            'TXN_AMT' => 'Amount',
+            'STATUS' => 'Status'
+        ],
+        [
+            'BILLER_REF_NO' => 'Holding No',
+            'TRANSACTION_ID' => 'Txn ID',
+            'TXN_DATE' => 'Date',
+            'TXN_AMT' => 'Amount',
+            'status' => 'Status'
+        ],
+        [
+            'Account Number' => 'Holding No / TL No',
+            'bKash Transaction ID' => 'Txn ID',
+            'Pay Date' => 'Date',
+            'Total Amount' => 'Amount',
+            'status' => 'Status'
+        ],
+        [
+            'BENEFICIARYNAME' => 'Holding No',
+            'BANKTRANID' => 'Txn ID',
+            'TRANDATE' => 'Date',
+            'REQAMOUNT' => 'Amount',
+            'status' => 'Status'
+        ],
+        [
+            'E-Holding No' => 'Holding No',
+            'Transactio ID' => 'Txn ID',
+            'Payment Date' => 'Date',
+            'Paid Amount' => 'Amount',
+            'status' => 'Status'
+        ],
+        [
+            'Holding no' => 'Holding No',
+            'Payment no' => 'Txn ID',
+            'Date' => 'Date',
+            'Total amount' => 'Amount',
+            'status' => 'Status'
+        ],
+        [
+            // 'Holding no' => 'Holding No',
+            'Transaction Id' => 'Txn ID',
+            'Transaction Date' => 'Date',
+            'Amount' => 'Amount',
+            'status' => 'Status'
+        ],
+        [
+            'E-Holding Number' => 'Holding No',
+            'Transaction ID (DNCC)' => 'Txn ID',
+            'Date & Time' => 'Date',
+            'Amount BDT' => 'Amount',
+            'status' => 'Status'
+        ],
+        [
+            'Holding No' => 'Holding No',
+            'TransactionNo' => 'Txn ID',
+            'Transaction Date' => 'Date',
+            'Amount' => 'Amount',
+            'status' => 'Status'
+        ]
+        // Add other mappings here
+    ];
+
     foreach ($fileRecords as $file):
         $tmpFile = tempnam(sys_get_temp_dir(), 'xls_');
         file_put_contents($tmpFile, $file['file_data']);
@@ -109,98 +212,17 @@ if (empty($fileRecords)) {
         $rowCount = $sheet->getHighestDataRow();
         $fileRowCount = ($rowCount > 1) ? ($rowCount - 1) : 0;
 
-        // Column sets
-        $dnccColumnsTL = [
-            'docnumber' => 'TL No',
-            'tranno' => 'Txn ID',
-            'cdate' => 'Date',
-            'totalamt' => 'Amount',
-            'gateway' => 'Gateway',
-            'PaymentType' => 'Payment Type'
 
-        ];
-        $dnccColumnsHolding = [
-            'e-holding' => 'E-Holding',
-            'transactio id' => 'Txn ID',
-            'date' => 'Date',
-            'paid amount' => 'Amount',
-            'gateway' => 'Gateway'
-        ];
-        $dbblColumnsHolding = [
-            'bill no' => 'Holding No / TL No',
-            'txn id' => 'Txn ID',
-            'territory code' => 'Date',
-            'amount' => 'Amount'
-        ];
-        $dbblColumnsHoldingDue = [
-            'bill no' => 'Holding No / TL No',
-            'txn id' => 'Txn ID',
-            'territory code' => 'Date',
-            'amount' => 'Amount'
-        ];  
-        $dbblColumnsHoldingMFS = [
-            'BILLER_REF_NO' => 'Holding No',
-            'TRANSACTION_ID' => 'Txn ID',
-            'TXN_DATE' => 'Date',
-            'TXN_AMT' => 'Amount'
-        ];  
-        $dbblColumnsHoldingMFSDue = [
-            'BILLER_REF_NO' => 'Holding No',
-            'TRANSACTION_ID' => 'Txn ID',
-            'TXN_DATE' => 'Date',
-            'TXN_AMT' => 'Amount'
-        ];  
-        $ColumnsBkashHolding = [
-            'Account Number' => 'Holding No / TL No',
-            'bKash Transaction ID' => 'Txn ID',
-            'Pay Date' => 'Date',
-            'Total Amount' => 'Amount'
-        ];         
-        $ColumnsSonaliHolding = [
-            'BENEFICIARYNAME' => 'Holding No',
-            'BANKTRANID' => 'Txn ID',
-            'TRANDATE' => 'Date',
-            'REQAMOUNT' => 'Amount'
-        ];         
-        $ColumnsStandardHolding = [
-            'E-Holding No' => 'Holding No',
-            'Transactio ID' => 'Txn ID',
-            'Payment Date' => 'Date',
-            'Paid Amount' => 'Amount'
-        ];         
-        $ColumnsModhumotiHolding = [
-            'Holding no' => 'Holding No',
-            'Payment no' => 'Txn ID',
-            'Date' => 'Date',
-            'Total amount' => 'Amount'
-        ];                 
-        $ColumnsTAPHolding = [
-            // 'Holding no' => 'Holding No',
-            'Transaction Id' => 'Txn ID',
-            'Transaction Date' => 'Date',
-            'Amount' => 'Amount'
-        ];         
-        $ColumnsUPAYHolding = [
-            'E-Holding Number' => 'Holding No',
-            'Transaction ID (DNCC)' => 'Txn ID',
-            'Date & Time' => 'Date',
-            'Amount BDT' => 'Amount'
-        ];         
-        $ColumnsOKWalletHolding = [
-            'Holding No' => 'Holding No',
-            'TransactionNo' => 'Txn ID',
-            'Transaction Date' => 'Date',
-            'Amount' => 'Amount'
-        ];
-
-        // Decide which column set to use
-        $columnsToUse = [$dnccColumnsTL, $dnccColumnsHolding, $dbblColumnsHolding, $dbblColumnsHoldingDue, $dbblColumnsHoldingMFS, $dbblColumnsHoldingMFSDue , $ColumnsBkashHolding, $ColumnsSonaliHolding, $ColumnsStandardHolding, $ColumnsModhumotiHolding, $ColumnsTAPHolding, $ColumnsUPAYHolding, $ColumnsOKWalletHolding];
+        $headers = array_map('strtolower', $data[0]);
         $selectedColumns = [];
 
+
+        // Find matching column set
         foreach ($columnsToUse as $colSet) {
             $allFound = true;
             foreach ($colSet as $key => $label) {
-                if (array_search(strtolower($key), array_map('strtolower', $data[0])) === false) {
+                if (strtolower($key) === 'status') continue; // optional
+                if (array_search(strtolower($key), $headers) === false) {
                     $allFound = false;
                     break;
                 }
@@ -211,27 +233,26 @@ if (empty($fileRecords)) {
             }
         }
 
-        $headers = array_map('strtolower', $data[0]);
+        // Build display headers & indexes
         $displayHeaders = [];
         $displayIndexes = [];
-
-        if (!empty($selectedColumns)) {
-            foreach ($selectedColumns as $key => $label) {
-                $index = array_search(strtolower($key), $headers);
-                if ($index !== false) {
-                    $displayHeaders[] = $label;
-                    $displayIndexes[] = $index;
-                }
+        foreach ($selectedColumns as $key => $label) {
+            $index = array_search(strtolower($key), $headers);
+            if ($index === false && strtolower($key) === 'status') {
+                $displayHeaders[] = $label;
+                $displayIndexes[] = null;
+                continue;
             }
-        } else {
-            $displayHeaders = $data[0];
-            $displayIndexes = range(0, count($data[0]) - 1);
+            if ($index !== false) {
+                $displayHeaders[] = $label;
+                $displayIndexes[] = $index;
+            }
         }
 
-        // Calculate total amount if column exists
+        // Calculate total amount
         $amountCol = null;
         foreach ($displayIndexes as $idx) {
-            if (in_array($headers[$idx], ['totalamt','paid amount','amount', 'txn_amt', 'TXN_AMT', 'total amount', 'reqamount', 'amount bdt'])) {
+            if ($idx !== null && in_array($headers[$idx], ['totalamt','paid amount','amount','txn_amt','total amount','reqamount','amount bdt'])) {
                 $amountCol = $idx;
                 break;
             }
@@ -260,9 +281,7 @@ if (empty($fileRecords)) {
                 <table style="width:100%; border-collapse:collapse; min-width:900px;">
                     <tr>
                         <?php foreach ($displayHeaders as $header): ?>
-                            <th style="border:1px solid #ddd; padding:5px; background:#f5f5f5;">
-                                <?= htmlspecialchars($header) ?>
-                            </th>
+                            <th style="border:1px solid #ddd; padding:5px; background:#f5f5f5;"><?= htmlspecialchars($header) ?></th>
                         <?php endforeach; ?>
                     </tr>
 
@@ -270,10 +289,8 @@ if (empty($fileRecords)) {
                         <tr>
                             <?php foreach ($displayIndexes as $colIndex): ?>
                                 <?php 
-                                    $cell = $data[$i][$colIndex];
-
-                                    // Format only numeric amount columns
-                                    if (in_array($headers[$colIndex], ['totalamt','paid amount','amount', 'txn_amt', 'total amount', 'reqamount', 'amount bdt']) && is_numeric($cell)) {
+                                    $cell = $colIndex === null ? "" : $data[$i][$colIndex];
+                                    if ($colIndex !== null && in_array($headers[$colIndex], ['totalamt','paid amount','amount','txn_amt','total amount','reqamount','amount bdt']) && is_numeric($cell)) {
                                         $cell = number_format((float)$cell, 2, '.', '');
                                     }
                                 ?>

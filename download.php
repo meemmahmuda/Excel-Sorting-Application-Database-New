@@ -106,6 +106,11 @@ include 'header.php';
                     <td style="padding:8px;"><?php echo $file['created_at']; ?></td>
                     <td style="padding:8px;">
                         <a href="download.php?id=<?php echo $file['id']; ?>" style="color:#4CAF50; text-decoration:none; margin-right:10px;">Download</a>
+
+                        <a href="edit_excel.php?id=<?php echo $file['id']; ?>" 
+                            style="color:#ff9800; text-decoration:none; margin-right:10px;">Edit
+                        </a>
+
                         <a href="download.php?delete=<?php echo $file['id']; ?>" style="color:#d9534f; text-decoration:none;" onclick="return confirm('Are you sure you want to delete this file?')">Delete</a>
                     </td>
                 </tr>
