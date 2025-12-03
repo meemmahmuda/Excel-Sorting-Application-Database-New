@@ -15,30 +15,57 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-function parseExcelDate($value) {
+    function parseExcelDate($value) {
+    if (empty($value)) return null;
+
     if (is_numeric($value)) {
-        return Date::excelToDateTimeObject($value)->format('Y-m-d');
+        if ($value > 25569 && $value < 60000) {
+            return Date::excelToDateTimeObject($value)->format('Y-m-d');
+        }
     }
 
     $value = trim($value);
-    if (empty($value)) return null;
 
-    if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/', $value, $m)) {
-        $d = $m[1]; $mth = $m[2]; $y = $m[3];
-        return sprintf('%04d-%02d-%02d', $y, $mth, $d);
+    if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})[ T](\d{1,2}):(\d{2})$/', $value, $m)) {
+        $a=$m[1]; $b=$m[2]; $y=$m[3]; $h=$m[4]; $mn=$m[5];
+
+        if ($a > 12) {
+            return sprintf('%04d-%02d-%02d', $y, $b, $a);
+        } elseif ($b > 12) {
+            return sprintf('%04d-%02d-%02d', $y, $a, $b);
+        } else {
+            return sprintf('%04d-%02d-%02d', $y, $b, $a);
+        }
+    }
+
+    if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})[ T](\d{1,2}):(\d{2}):(\d{2})( ?AM|PM)?$/i', $value, $m)) {
+        $ts = strtotime($value);
+        if ($ts !== false) return date('Y-m-d', $ts);
+    }
+
+    if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $value, $m)) {
+        $a=$m[1]; $b=$m[2]; $y=$m[3];
+
+        if ($a > 12) return sprintf('%04d-%02d-%02d', $y, $b, $a);
+        if ($b > 12) return sprintf('%04d-%02d-%02d', $y, $a, $b);
+
+        return sprintf('%04d-%02d-%02d', $y, $b, $a);
     }
 
     $ts = strtotime($value);
     if ($ts !== false) return date('Y-m-d', $ts);
 
     return null;
-}
+    }
+
+
 
 $bankList = $pdo->query("SELECT DISTINCT bank_name FROM files WHERE type='unmatched'")->fetchAll(PDO::FETCH_COLUMN);
 $userList = $pdo->query("SELECT id, username FROM users WHERE is_approved = 1 AND role != 'admin'")->fetchAll(PDO::FETCH_ASSOC);
 
 $bankFilter = $_POST['bank_name'] ?? '';
 $userFilter = $_POST['user_id'] ?? '';
+$statusFilter = $_POST['status'] ?? '';
 $startDate = $_POST['start_date'] ?? '';
 $endDate = $_POST['end_date'] ?? '';
 ?>
@@ -63,6 +90,45 @@ $endDate = $_POST['end_date'] ?? '';
             <?php foreach ($userList as $user): ?>
                 <option value="<?= $user['id'] ?>" <?= $userFilter == $user['id'] ? 'selected' : '' ?>>
                     <?= htmlspecialchars($user['username']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
+        <label><b>Status:</b></label>
+        <select name="status" style="padding:8px; border-radius:4px; border:1px solid #ccc;">
+            <option value="">-- All Statuses --</option>
+            <?php
+            $statusSet = [];
+            $files = $pdo->query("SELECT file_data FROM files WHERE type='unmatched'")->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($files as $fdata) {
+                $tmpFile = tempnam(sys_get_temp_dir(), 'xls_');
+                file_put_contents($tmpFile, $fdata);
+                $spreadsheet = IOFactory::load($tmpFile);
+                $sheet = $spreadsheet->getActiveSheet();
+                $data = $sheet->toArray();
+                unlink($tmpFile);
+
+                if (!empty($data)) {
+                    $headers = array_map('strtolower', $data[0]);
+                    $statusCol = null;
+                    foreach ($headers as $idx => $h) {
+                        if (in_array(strtolower($h), ['status'])) { 
+                            $statusCol = $idx; 
+                            break; 
+                        }
+                    }
+                    if ($statusCol !== null) {
+                        for ($i = 1; $i < count($data); $i++) {
+                            $val = trim($data[$i][$statusCol]);
+                            if ($val !== '') $statusSet[$val] = true;
+                        }
+                    }
+                }
+            }
+
+            foreach ($statusSet as $statusVal => $_): ?>
+                <option value="<?= htmlspecialchars($statusVal) ?>" <?= $statusFilter === $statusVal ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($statusVal) ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -120,10 +186,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $headers = array_map('strtolower', $data[0]);
             $dateCol = null;
+            $statusCol = null;
             foreach ($headers as $idx => $h) {
                 if (in_array(strtolower($h), ['cdate','date','txn_date','payment date','pay date','territory code','txndate','date & time'])) {
                     $dateCol = $idx;
-                    break;
+                }
+                if (in_array(strtolower($h), ['status'])) {
+                    $statusCol = $idx;
                 }
             }
 
@@ -131,9 +200,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             for ($i = 1; $i < count($data); $i++) {
                 $cellDate = $dateCol === null ? null : $data[$i][$dateCol];
                 $parsedDate = parseExcelDate($cellDate);
-                if ($parsedDate !== null && $startDate && $endDate) {
-                    if ($parsedDate >= $startDate && $parsedDate <= $endDate) $filteredData[] = $data[$i];
-                } elseif (!$startDate && !$endDate) {
+
+                $rowStatus = $statusCol === null ? '' : trim($data[$i][$statusCol]);
+
+                if ($rowStatus === '') continue;
+
+                $dateOk = (!$startDate && !$endDate) || ($parsedDate !== null && $startDate && $endDate && $parsedDate >= $startDate && $parsedDate <= $endDate);
+                $statusOk = $statusFilter === '' || $rowStatus === $statusFilter;
+
+                if ($dateOk && $statusOk) {
                     $filteredData[] = $data[$i];
                 }
             }
@@ -199,7 +274,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $index = array_search(strtolower($key), $headers);
                 if ($index === false && strtolower($key) === 'status') {
                     $displayHeaders[] = $label;
-                    $displayIndexes[] = null;
+                    $displayIndexes[] = $statusCol;
                     continue;
                 }
                 if ($index !== false) {
